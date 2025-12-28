@@ -54,18 +54,32 @@ export const Modals = {
             const modal = document.getElementById('custom-confirm-modal');
             const titleEl = document.getElementById('confirm-title');
             const messageEl = document.getElementById('confirm-message');
-            const okBtn = document.getElementById('confirm-ok-btn');
-            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            const oldOkBtn = document.getElementById('confirm-ok-btn');
+            const oldCancelBtn = document.getElementById('confirm-cancel-btn');
+
+            // Clonar botões para remover todos os event listeners antigos
+            const okBtn = oldOkBtn.cloneNode(true);
+            const cancelBtn = oldCancelBtn.cloneNode(true);
+            oldOkBtn.parentNode.replaceChild(okBtn, oldOkBtn);
+            oldCancelBtn.parentNode.replaceChild(cancelBtn, oldCancelBtn);
 
             titleEl.textContent = title;
             messageEl.textContent = message;
 
-            const handleOk = () => {
+            let isProcessing = false;
+
+            const handleOk = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve(true);
             };
 
-            const handleCancel = () => {
+            const handleCancel = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve(false);
             };
@@ -78,20 +92,20 @@ export const Modals = {
                 setTimeout(() => {
                     modal.classList.add('hidden');
                 }, 300);
-                
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
             };
 
-            okBtn.addEventListener('click', handleOk);
-            cancelBtn.addEventListener('click', handleCancel);
+            // Usar { once: true } para garantir que o listener só execute uma vez
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
 
             modal.classList.remove('hidden');
+            
+            // Pequeno delay antes de mostrar o modal para evitar cliques acidentais
             setTimeout(() => {
                 modal.classList.add('show');
                 modal.querySelector('.modal-content').classList.remove('scale-95');
                 modal.querySelector('.modal-content').classList.add('scale-100');
-            }, 10);
+            }, 50);
         });
     },
 
@@ -100,12 +114,21 @@ export const Modals = {
             const modal = document.getElementById('custom-alert-modal');
             const titleEl = document.getElementById('alert-title');
             const messageEl = document.getElementById('alert-message');
-            const okBtn = document.getElementById('alert-ok-btn');
+            const oldOkBtn = document.getElementById('alert-ok-btn');
+
+            // Clonar botão para remover todos os event listeners antigos
+            const okBtn = oldOkBtn.cloneNode(true);
+            oldOkBtn.parentNode.replaceChild(okBtn, oldOkBtn);
 
             titleEl.textContent = title;
             messageEl.textContent = message;
 
-            const handleOk = () => {
+            let isProcessing = false;
+
+            const handleOk = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve();
             };
@@ -118,18 +141,19 @@ export const Modals = {
                 setTimeout(() => {
                     modal.classList.add('hidden');
                 }, 300);
-                
-                okBtn.removeEventListener('click', handleOk);
             };
 
-            okBtn.addEventListener('click', handleOk);
+            // Usar { once: true } para garantir que o listener só execute uma vez
+            okBtn.addEventListener('click', handleOk, { once: true });
 
             modal.classList.remove('hidden');
+            
+            // Pequeno delay antes de mostrar o modal para evitar cliques acidentais
             setTimeout(() => {
                 modal.classList.add('show');
                 modal.querySelector('.modal-content').classList.remove('scale-95');
                 modal.querySelector('.modal-content').classList.add('scale-100');
-            }, 10);
+            }, 50);
         });
     },
 
