@@ -92,14 +92,36 @@ export class DadosManager {
 
     updateDeleteCounts() {
         if (this.elements.deleteClientesCount) {
-            this.elements.deleteClientesCount.textContent = this.app.data.clients?.length || 0;
+            const count = this.app.data.clients?.length || 0;
+            this.elements.deleteClientesCount.textContent = count;
+            this.updateBadgeColor(this.elements.deleteClientesCount, count);
         }
         if (this.elements.deleteRegistrosCount) {
-            this.elements.deleteRegistrosCount.textContent = this.app.data.registros?.length || 0;
+            const count = this.app.data.registros?.length || 0;
+            this.elements.deleteRegistrosCount.textContent = count;
+            this.updateBadgeColor(this.elements.deleteRegistrosCount, count);
         }
         if (this.elements.deleteCategoriasCount) {
             const categorias = Storage.loadCategorias();
-            this.elements.deleteCategoriasCount.textContent = Object.keys(categorias).length;
+            const count = Object.keys(categorias).length;
+            this.elements.deleteCategoriasCount.textContent = count;
+            this.updateBadgeColor(this.elements.deleteCategoriasCount, count);
+        }
+    }
+
+    updateBadgeColor(element, count) {
+        // Remove all color classes
+        element.classList.remove('bg-green-600', 'bg-yellow-500', 'bg-orange-500', 'bg-red-600', 'animate-pulse');
+        
+        // Apply color based on count
+        if (count === 0) {
+            element.classList.add('bg-green-600');
+        } else if (count <= 100) {
+            element.classList.add('bg-yellow-500');
+        } else if (count <= 1000) {
+            element.classList.add('bg-orange-500');
+        } else {
+            element.classList.add('bg-red-600', 'animate-pulse');
         }
     }
 
