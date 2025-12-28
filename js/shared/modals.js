@@ -54,18 +54,32 @@ export const Modals = {
             const modal = document.getElementById('custom-confirm-modal');
             const titleEl = document.getElementById('confirm-title');
             const messageEl = document.getElementById('confirm-message');
-            const okBtn = document.getElementById('confirm-ok-btn');
-            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            const oldOkBtn = document.getElementById('confirm-ok-btn');
+            const oldCancelBtn = document.getElementById('confirm-cancel-btn');
+
+            // Clone buttons to remove all old event listeners
+            const okBtn = oldOkBtn.cloneNode(true);
+            const cancelBtn = oldCancelBtn.cloneNode(true);
+            oldOkBtn.parentNode.replaceChild(okBtn, oldOkBtn);
+            oldCancelBtn.parentNode.replaceChild(cancelBtn, oldCancelBtn);
 
             titleEl.textContent = title;
             messageEl.textContent = message;
 
-            const handleOk = () => {
+            let isProcessing = false;
+
+            const handleOk = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve(true);
             };
 
-            const handleCancel = () => {
+            const handleCancel = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve(false);
             };
@@ -78,20 +92,20 @@ export const Modals = {
                 setTimeout(() => {
                     modal.classList.add('hidden');
                 }, 300);
-                
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
             };
 
-            okBtn.addEventListener('click', handleOk);
-            cancelBtn.addEventListener('click', handleCancel);
+            // Use { once: true } to ensure the listener only executes once
+            okBtn.addEventListener('click', handleOk, { once: true });
+            cancelBtn.addEventListener('click', handleCancel, { once: true });
 
             modal.classList.remove('hidden');
+            
+            // Small delay before showing modal to avoid accidental clicks
             setTimeout(() => {
                 modal.classList.add('show');
                 modal.querySelector('.modal-content').classList.remove('scale-95');
                 modal.querySelector('.modal-content').classList.add('scale-100');
-            }, 10);
+            }, 50);
         });
     },
 
@@ -100,12 +114,21 @@ export const Modals = {
             const modal = document.getElementById('custom-alert-modal');
             const titleEl = document.getElementById('alert-title');
             const messageEl = document.getElementById('alert-message');
-            const okBtn = document.getElementById('alert-ok-btn');
+            const oldOkBtn = document.getElementById('alert-ok-btn');
+
+            // Clone button to remove all old event listeners
+            const okBtn = oldOkBtn.cloneNode(true);
+            oldOkBtn.parentNode.replaceChild(okBtn, oldOkBtn);
 
             titleEl.textContent = title;
             messageEl.textContent = message;
 
-            const handleOk = () => {
+            let isProcessing = false;
+
+            const handleOk = (e) => {
+                e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve();
             };
@@ -118,18 +141,19 @@ export const Modals = {
                 setTimeout(() => {
                     modal.classList.add('hidden');
                 }, 300);
-                
-                okBtn.removeEventListener('click', handleOk);
             };
 
-            okBtn.addEventListener('click', handleOk);
+            // Use { once: true } to ensure the listener only executes once
+            okBtn.addEventListener('click', handleOk, { once: true });
 
             modal.classList.remove('hidden');
+            
+            // Small delay before showing modal to avoid accidental clicks
             setTimeout(() => {
                 modal.classList.add('show');
                 modal.querySelector('.modal-content').classList.remove('scale-95');
                 modal.querySelector('.modal-content').classList.add('scale-100');
-            }, 10);
+            }, 50);
         });
     },
 
@@ -146,7 +170,11 @@ export const Modals = {
             const modal = document.getElementById('custom-alert-modal');
             const titleEl = document.getElementById('alert-title');
             const messageEl = document.getElementById('alert-message');
-            const okBtn = document.getElementById('alert-ok-btn');
+            const oldOkBtn = document.getElementById('alert-ok-btn');
+
+            // Clone button to remove all old event listeners
+            const okBtn = oldOkBtn.cloneNode(true);
+            oldOkBtn.parentNode.replaceChild(okBtn, oldOkBtn);
 
             titleEl.textContent = title;
             
@@ -157,19 +185,21 @@ export const Modals = {
             messageEl.innerHTML = inputHtml;
 
             const inputField = document.getElementById('modal-input-field');
-            const handleOk = () => {
+            
+            let isProcessing = false;
+
+            const handleOk = (e) => {
+                if (e) e.stopPropagation();
+                if (isProcessing) return;
+                isProcessing = true;
                 cleanup();
                 resolve(inputField.value || null);
             };
 
-            const handleCancel = () => {
-                cleanup();
-                resolve(null);
-            };
-
             const handleKeyPress = (e) => {
                 if (e.key === 'Enter') {
-                    handleOk();
+                    handleOk(e);
+                    inputField.removeEventListener('keypress', handleKeyPress);
                 }
             };
 
@@ -180,24 +210,26 @@ export const Modals = {
                 
                 setTimeout(() => {
                     modal.classList.add('hidden');
+                    okBtn.textContent = 'OK';
                 }, 300);
                 
-                okBtn.removeEventListener('click', handleOk);
-                okBtn.textContent = 'OK';
                 inputField.removeEventListener('keypress', handleKeyPress);
             };
 
-            okBtn.addEventListener('click', handleOk);
+            // Use { once: true } to ensure the listener only executes once
+            okBtn.addEventListener('click', handleOk, { once: true });
             inputField.addEventListener('keypress', handleKeyPress);
             okBtn.textContent = 'Confirmar';
 
             modal.classList.remove('hidden');
+            
+            // Small delay before showing modal to avoid accidental clicks
             setTimeout(() => {
                 modal.classList.add('show');
                 modal.querySelector('.modal-content').classList.remove('scale-95');
                 modal.querySelector('.modal-content').classList.add('scale-100');
                 inputField.focus();
-            }, 10);
+            }, 50);
         });
     }
 };
