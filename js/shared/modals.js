@@ -52,6 +52,8 @@ export const Modals = {
     showConfirm(message, title = 'Confirmação') {
         return new Promise((resolve) => {
             const modal = document.getElementById('custom-confirm-modal');
+            const MODAL_ANIMATION_DURATION = 300;
+            const MODAL_CLOSE_BUFFER = 50; // Extra buffer for safety
             
             // Aguardar se o modal ainda estiver visível (fechando)
             const waitForClose = () => {
@@ -60,7 +62,7 @@ export const Modals = {
                         res();
                     } else {
                         // Aguardar a animação de fechamento terminar
-                        setTimeout(() => res(), 350);
+                        setTimeout(() => res(), MODAL_ANIMATION_DURATION + MODAL_CLOSE_BUFFER);
                     }
                 });
             };
@@ -107,14 +109,18 @@ export const Modals = {
 
                 const cleanup = () => {
                     return new Promise((res) => {
-                        modal.querySelector('.modal-content').classList.remove('scale-100');
-                        modal.querySelector('.modal-content').classList.add('scale-95');
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-100');
+                            modalContent.classList.add('scale-95');
+                        }
                         modal.classList.remove('show');
                         
                         setTimeout(() => {
                             modal.classList.add('hidden');
+                            modal.removeEventListener('click', handleBackdropClick);
                             res();
-                        }, 300);
+                        }, MODAL_ANIMATION_DURATION);
                     });
                 };
 
@@ -136,8 +142,11 @@ export const Modals = {
                 // Delay maior antes de mostrar e habilitar botões
                 setTimeout(() => {
                     modal.classList.add('show');
-                    modal.querySelector('.modal-content').classList.remove('scale-95');
-                    modal.querySelector('.modal-content').classList.add('scale-100');
+                    const modalContent = modal.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.classList.remove('scale-95');
+                        modalContent.classList.add('scale-100');
+                    }
                     
                     // Habilitar botões após animação completa
                     setTimeout(() => {
