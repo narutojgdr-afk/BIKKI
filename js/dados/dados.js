@@ -116,7 +116,7 @@ export class DadosManager {
 
     async handleDeleteData() {
         try {
-            Auth.requirePermission('configuracao', 'exportar');
+            Auth.requirePermission('dados', 'importarSistema');
         } catch (error) {
             Modals.alert(error.message, 'Permissao Negada');
             return;
@@ -218,7 +218,7 @@ export class DadosManager {
 
     async handleImport() {
         try {
-            Auth.requirePermission('configuracao', 'importar');
+            Auth.requirePermission('dados', 'importar');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -358,7 +358,7 @@ export class DadosManager {
 
     exportToExcel() {
         try {
-            Auth.requirePermission('configuracao', 'exportar');
+            Auth.requirePermission('dados', 'exportarDados');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -394,7 +394,7 @@ export class DadosManager {
 
     exportToCSV() {
         try {
-            Auth.requirePermission('configuracao', 'exportar');
+            Auth.requirePermission('dados', 'exportarDados');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -476,7 +476,7 @@ export class DadosManager {
 
     exportSystemToExcel() {
         try {
-            Auth.requirePermission('configuracao', 'exportar');
+            Auth.requirePermission('dados', 'exportarSistema');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -527,7 +527,7 @@ export class DadosManager {
 
     exportSystemToCSV() {
         try {
-            Auth.requirePermission('configuracao', 'exportar');
+            Auth.requirePermission('dados', 'exportarSistema');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -758,7 +758,7 @@ export class DadosManager {
 
     async handleSystemImport() {
         try {
-            Auth.requirePermission('configuracao', 'importar');
+            Auth.requirePermission('dados', 'importarSistema');
         } catch (error) {
             Modals.alert(error.message, 'Permissão Negada');
             return;
@@ -1128,19 +1128,27 @@ export class DadosManager {
     }
 
     applyPermissionsToUI() {
-        const canExport = Auth.hasPermission('configuracao', 'exportar');
-        const canImport = Auth.hasPermission('configuracao', 'importar');
+        const canExportarDados = Auth.hasPermission('dados', 'exportarDados');
+        const canExportarSistema = Auth.hasPermission('dados', 'exportarSistema');
+        const canImportarDados = Auth.hasPermission('dados', 'importar');
+        const canImportarSistema = Auth.hasPermission('dados', 'importarSistema');
 
-        if (!canExport) {
+        if (!canExportarDados) {
             if (this.elements.exportExcelBtn) this.elements.exportExcelBtn.style.display = 'none';
             if (this.elements.exportCsvBtn) this.elements.exportCsvBtn.style.display = 'none';
+        }
+
+        if (!canExportarSistema) {
             if (this.elements.exportSystemExcelBtn) this.elements.exportSystemExcelBtn.style.display = 'none';
             if (this.elements.exportSystemCsvBtn) this.elements.exportSystemCsvBtn.style.display = 'none';
         }
 
-        if (!canImport) {
+        if (!canImportarDados) {
             if (this.elements.importFile) this.elements.importFile.style.display = 'none';
             if (this.elements.importBtn) this.elements.importBtn.style.display = 'none';
+        }
+
+        if (!canImportarSistema) {
             if (this.elements.importSystemFile) this.elements.importSystemFile.style.display = 'none';
             if (this.elements.importSystemBtn) this.elements.importSystemBtn.style.display = 'none';
         }
