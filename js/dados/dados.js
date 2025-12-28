@@ -142,6 +142,9 @@ export class DadosManager {
 
         if (!confirmed) return;
 
+        // Aguardar um momento antes de mostrar o segundo modal
+        await new Promise(resolve => setTimeout(resolve, 400));
+
         const doubleConfirmed = await Modals.showConfirm(
             'ATENCAO FINAL: Todos os dados selecionados serao REMOVIDOS PERMANENTEMENTE. Confirma a exclusao?'
         );
