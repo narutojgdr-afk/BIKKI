@@ -199,6 +199,7 @@ export const Modals = {
             const handleKeyPress = (e) => {
                 if (e.key === 'Enter') {
                     handleOk(e);
+                    inputField.removeEventListener('keypress', handleKeyPress);
                 }
             };
 
@@ -211,6 +212,8 @@ export const Modals = {
                     modal.classList.add('hidden');
                     okBtn.textContent = 'OK';
                 }, 300);
+                
+                inputField.removeEventListener('keypress', handleKeyPress);
             };
 
             // Use { once: true } to ensure the listener only executes once
