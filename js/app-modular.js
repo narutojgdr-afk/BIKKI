@@ -111,7 +111,7 @@ class App {
         }
 
         const dadosTab = document.getElementById('dados-tab');
-        if (dadosTab && !Auth.hasPermission('configuracao', 'ver')) {
+        if (dadosTab && !Auth.hasPermission('dados', 'ver')) {
             dadosTab.classList.add('hidden');
         }
 
@@ -159,7 +159,7 @@ class App {
         const permissions = {
             'clientes': () => Auth.hasPermission('clientes', 'ver'),
             'registros-diarios': () => Auth.hasPermission('registros', 'ver'),
-            'dados': () => Auth.hasPermission('configuracao', 'ver'),
+            'dados': () => Auth.hasPermission('dados', 'ver'),
             'configuracao': () => Auth.hasPermission('configuracao', 'ver'),
             'usuarios': () => Auth.hasPermission('configuracao', 'gerenciarUsuarios'),
             'jogos': () => Auth.hasPermission('jogos', 'ver')
