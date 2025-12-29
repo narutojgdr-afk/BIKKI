@@ -1031,6 +1031,25 @@
         </div>
     </div>
 
+    <div id="categoria-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 hidden modal-backdrop">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-lg modal-content transform scale-95">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex-1">
+                        <h3 id="categoria-modal-title" class="text-xl font-bold text-slate-800 dark:text-slate-100"></h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Pessoas registradas nesta categoria</p>
+                    </div>
+                    <button type="button" id="close-categoria-modal-btn" class="text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <div id="categoria-modal-list" class="space-y-3 max-h-[400px] overflow-y-auto">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="custom-confirm-modal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 hidden modal-backdrop">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md modal-content transform scale-95">
             <div class="p-6">

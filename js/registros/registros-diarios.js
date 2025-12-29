@@ -31,6 +31,10 @@ export class RegistrosManager {
             editRegistroCategoriaSelect: document.getElementById('edit-registro-categoria'),
             editRegistroEntradaInput: document.getElementById('edit-registro-entrada'),
             editRegistroSaidaInput: document.getElementById('edit-registro-saida'),
+            categoriaModal: document.getElementById('categoria-modal'),
+            categoriaModalTitle: document.getElementById('categoria-modal-title'),
+            categoriaModalList: document.getElementById('categoria-modal-list'),
+            closeCategoriaModalBtn: document.getElementById('close-categoria-modal-btn'),
         };
         this.setupEventListeners();
     }
@@ -48,11 +52,15 @@ export class RegistrosManager {
         this.elements.dailyRecordsList.addEventListener('click', this.handleReverterPernoite.bind(this));
         this.elements.dailyRecordsList.addEventListener('click', this.handleEditRegistroClick.bind(this));
         this.elements.dailyRecordsList.addEventListener('click', this.handleViewComments.bind(this));
+        this.elements.dailyRecordsList.addEventListener('click', this.handleCategoriaBoxClick.bind(this));
         this.elements.dailyRecordsList.addEventListener('change', this.handleActionChange.bind(this));
         this.elements.dailyRecordsList.addEventListener('click', this.handleActionDropdownClick.bind(this));
         this.elements.editRegistroForm.addEventListener('submit', this.handleEditRegistroSubmit.bind(this));
         this.elements.cancelEditRegistroBtn.addEventListener('click', () => this.app.toggleModal('edit-registro-modal', false));
         this.elements.editRegistroClientSelect.addEventListener('change', this.handleClientChange.bind(this));
+        if (this.elements.closeCategoriaModalBtn) {
+            this.elements.closeCategoriaModalBtn.addEventListener('click', () => this.app.toggleModal('categoria-modal', false));
+        }
         this.elements.exportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleExportMenu();
@@ -79,6 +87,67 @@ export class RegistrosManager {
             const clientId = btn.dataset.clientId;
             this.app.openCommentsModal(clientId, () => this.renderDailyRecords());
         }
+    }
+
+    handleCategoriaBoxClick(e) {
+        const categoriaBox = e.target.closest('.categoria-box');
+        if (categoriaBox) {
+            const categoria = categoriaBox.dataset.categoria;
+            this.openCategoriaModal(categoria);
+        }
+    }
+
+    openCategoriaModal(categoria) {
+        if (!this.elements.categoriaModal || !this.elements.categoriaModalList) return;
+
+        // Filter records for this category
+        const dailyRecords = this.app.data.currentDailyRecords || [];
+        const categoriaRecords = dailyRecords.filter(({ registro }) => {
+            const recordCategoria = registro.categoria || 'Sem Categoria';
+            return recordCategoria === categoria;
+        });
+
+        // Update modal title
+        if (this.elements.categoriaModalTitle) {
+            this.elements.categoriaModalTitle.textContent = categoria;
+        }
+
+        // Build list HTML
+        const categorias = Storage.loadCategorias();
+        const listHtml = categoriaRecords.map(({ client, bike, registro }) => {
+            const categoriaEmoji = categoria !== 'Sem Categoria' && categorias[categoria] ? categorias[categoria] : '';
+            return `
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <div class="flex-1">
+                        <p class="font-medium text-slate-800 dark:text-slate-100">${client.nome}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${client.cpf}</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                            <i data-lucide="bike" class="w-3 h-3 inline"></i>
+                            ${bike.modelo} - ${bike.marca}
+                        </p>
+                    </div>
+                    <button class="edit-categoria-registro-btn p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors" data-registro-id="${registro.id}" title="Editar registro">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        this.elements.categoriaModalList.innerHTML = listHtml || '<p class="text-sm text-slate-500 dark:text-slate-400">Nenhuma pessoa registrada nesta categoria.</p>';
+        
+        // Recreate icons
+        lucide.createIcons();
+        
+        // Add event listeners to edit buttons
+        this.elements.categoriaModalList.querySelectorAll('.edit-categoria-registro-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const registroId = btn.dataset.registroId;
+                this.app.toggleModal('categoria-modal', false);
+                this.openEditRegistroModal(registroId);
+            });
+        });
+
+        this.app.toggleModal('categoria-modal', true);
     }
 
     async handleAddRegistro(e) {
@@ -448,6 +517,9 @@ export class RegistrosManager {
             this.elements.editRegistroCategoriaSelect.appendChild(option);
         });
 
+        // Update the custom dropdown visual
+        this.updateEditCategoriaDropdown(categorias, registro.categoria);
+
         const entradaDate = new Date(registro.dataHoraEntrada);
         this.elements.editRegistroEntradaInput.value = this.formatDateTimeLocal(entradaDate);
 
@@ -464,6 +536,75 @@ export class RegistrosManager {
     handleClientChange(e) {
         const clientId = e.target.value;
         this.populateBikeSelect(clientId);
+    }
+
+    updateEditCategoriaDropdown(categorias, selectedCategoria) {
+        const dropdown = document.getElementById('edit-registro-categoria-dropdown');
+        if (!dropdown) return;
+
+        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        const dropdownText = dropdown.querySelector('.dropdown-text');
+        if (!dropdownMenu) return;
+
+        const iconMap = {
+            '👤': 'user',
+            '🏢': 'building',
+            '🍽️': 'utensils',
+            '💪': 'dumbbell',
+            '👨': 'user',
+            '🏪': 'store',
+            '⚙️': 'settings',
+            '🎯': 'target',
+            '📱': 'smartphone',
+            '📊': 'bar-chart',
+            '🔧': 'wrench',
+            '🎨': 'palette',
+            '⭐': 'star',
+            '📦': 'package',
+            '🚀': 'rocket',
+            '🛍️': 'shopping-bag',
+            '☕': 'coffee'
+        };
+
+        // Build the dropdown options HTML
+        let optionsHtml = `
+            <div class="dropdown-option ${!selectedCategoria ? 'selected' : ''}" data-value="">
+                <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>
+                Selecione uma categoria (opcional)
+            </div>
+        `;
+
+        Object.entries(categorias).forEach(([nome, emoji]) => {
+            const iconName = iconMap[emoji] || 'circle';
+            const isSelected = selectedCategoria === nome;
+            optionsHtml += `
+                <div class="dropdown-option ${isSelected ? 'selected' : ''}" data-value="${nome}">
+                    <i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>
+                    ${emoji} ${nome}
+                </div>
+            `;
+        });
+
+        dropdownMenu.innerHTML = optionsHtml;
+
+        // Update the button text
+        if (dropdownText) {
+            if (selectedCategoria && categorias[selectedCategoria]) {
+                const emoji = categorias[selectedCategoria];
+                const iconName = iconMap[emoji] || 'circle';
+                dropdownText.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>${emoji} ${selectedCategoria}`;
+            } else {
+                dropdownText.innerHTML = `<i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Selecione uma categoria (opcional)`;
+            }
+        }
+
+        // Recreate icons
+        lucide.createIcons();
+
+        // Re-initialize the dropdown
+        if (window.editRegistroCategoriaDropdown) {
+            window.editRegistroCategoriaDropdown.init();
+        }
     }
 
     populateBikeSelect(clientId, selectedBikeId = null) {
@@ -1074,7 +1215,7 @@ export class RegistrosManager {
                     };
                     const iconName = iconMap[emoji] || 'circle';
                     return `
-                        <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors cursor-pointer categoria-box" data-categoria="${categoria}">
                             <i data-lucide="${iconName}" class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
                             <div class="flex-1">
                                 <p class="text-xs font-medium text-slate-500 dark:text-slate-400">${categoria}</p>
