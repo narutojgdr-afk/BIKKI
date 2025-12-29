@@ -1,0 +1,15 @@
+{
+  "id": "client-1",
+  "nome": "João Silva",
+  "cpf": "123.456.789-00",
+  "telefone": "(11) 99999-0001",
+  "categoria": "CLIENTE",
+  "bicicletas": [
+    {
+      "id": "bike-1",
+      "modelo": "Caloi 10",
+      "marca": "Caloi",
+      "cor": "Vermelha"
+    }
+  ]
+}
