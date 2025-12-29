@@ -164,8 +164,11 @@ export class JogosManager {
     }
 
     renderGameMenu() {
-        const container = document.getElementById('games-menu');
-        if (!container) return;
+        const gamesContainer = document.getElementById('games-menu');
+        const statsContainer = document.getElementById('player-stats');
+        const achievementsContainer = document.getElementById('player-achievements');
+        
+        if (!gamesContainer) return;
 
         const games = [
             { id: 'snake', name: 'Jogo da Cobrinha', icon: 'zap', description: 'Com 5 fases, obstáculos e power-ups!', category: 'acao' },
@@ -187,37 +190,30 @@ export class JogosManager {
             { id: 'diversos', name: 'Jogos Diversos', icon: 'puzzle' }
         ];
 
-        // Stats and Achievements Section
-        const statsHtml = `
-            <div class="col-span-full bg-gradient-to-r from-blue-500/10 to-purple-600/10 dark:from-blue-500/20 dark:to-purple-600/20 p-6 rounded-xl border border-blue-200 dark:border-blue-800">
-                <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-500"></i>
-                    Suas Estatísticas
-                </h3>
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="text-center">
-                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${this.stats.gamesPlayed}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Jogos</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">${this.stats.bestScore}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Melhor Pontuação</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">${Object.keys(this.achievements).length}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Conquistas</p>
-                    </div>
+        // Render Statistics
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${this.stats.gamesPlayed}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Jogos</p>
                 </div>
-                <h4 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                    <i data-lucide="trophy" class="w-4 h-4 text-yellow-500"></i>
-                    Conquistas
-                </h4>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    ${this.renderAchievements()}
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">${this.stats.bestScore}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Melhor Pontuação</p>
                 </div>
-            </div>
-        `;
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">${Object.keys(this.achievements).length}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Conquistas</p>
+                </div>
+            `;
+        }
 
+        // Render Achievements
+        if (achievementsContainer) {
+            achievementsContainer.innerHTML = this.renderAchievements();
+        }
+
+        // Render Games by Category
         const renderGameCard = (game) => `
             <div class="game-card bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all transform hover:-translate-y-1" data-game="${game.id}">
                 <div class="flex items-center justify-between mb-4">
@@ -237,19 +233,19 @@ export class JogosManager {
         const gamesByCategory = categories.map(cat => {
             const catGames = games.filter(g => g.category === cat.id);
             return `
-                <div class="col-span-full">
+                <div class="mb-8">
                     <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <i data-lucide="${cat.icon}" class="w-5 h-5 text-blue-500"></i>
+                        <i data-lucide="${cat.icon}" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
                         ${cat.name}
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         ${catGames.map(renderGameCard).join('')}
                     </div>
                 </div>
             `;
         }).join('');
         
-        container.innerHTML = gamesByCategory + statsHtml;
+        gamesContainer.innerHTML = gamesByCategory;
 
         lucide.createIcons();
         this.setupEventListeners();
