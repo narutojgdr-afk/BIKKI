@@ -4,27 +4,7 @@ import { Modals } from '../shared/modals.js';
 import { Auth } from '../shared/auth.js';
 
 export class ConfiguracaoManager {
-    emojiToIconMap = {
-        '👤': 'user',
-        '🏢': 'building',
-        '🍽️': 'utensils',
-        '💪': 'dumbbell',
-        '👨': 'user',
-        '🏪': 'store',
-        '⚙️': 'settings',
-        '🎯': 'target',
-        '📱': 'smartphone',
-        '📊': 'bar-chart',
-        '🔧': 'wrench',
-        '🎨': 'palette',
-        '⭐': 'star',
-        '📦': 'package',
-        '🚀': 'rocket',
-        '🛍️': 'shopping-bag',
-        '☕': 'coffee'
-    };
-
-    sanitizeCategory(value) {
+    constructor(app) {
         if (typeof value !== 'string') return value;
         let sanitized = value.trim();
         sanitized = sanitized.replace(/^["']+|["']+$/g, '');
@@ -220,8 +200,13 @@ export class ConfiguracaoManager {
         }
     }
 
-    getIconForEmoji(emoji) {
-        return this.emojiToIconMap[emoji] || 'circle';
+    getIconName(iconNameOrValue) {
+        // If it's already a valid icon name (string without emojis), return it
+        // Otherwise default to 'circle'
+        if (typeof iconNameOrValue === 'string' && iconNameOrValue.length > 1 && !/[\u{1F300}-\u{1F9FF}]/u.test(iconNameOrValue)) {
+            return iconNameOrValue;
+        }
+        return 'circle';
     }
 
     renderCategorias() {
@@ -243,8 +228,7 @@ export class ConfiguracaoManager {
             return;
         }
 
-        categoriasList.innerHTML = entries.map(([nome, emoji]) => {
-            const iconName = this.getIconForEmoji(emoji);
+        categoriasList.innerHTML = entries.map(([nome, iconName]) => {
             const escapedNome = this.escapeHtmlAttr(nome);
             return `
             <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
@@ -333,8 +317,7 @@ export class ConfiguracaoManager {
             statsHTML = Object.entries(categoriaCounts)
                 .sort((a, b) => b[1] - a[1])
                 .map(([nome, count]) => {
-                    const emoji = categorias[nome];
-                    const iconName = this.getIconForEmoji(emoji);
+                    const iconName = categorias[nome] || 'circle';
                     const percentual = totalClientes > 0 ? ((count / totalClientes) * 100).toFixed(1) : '0.0';
                     const escapedNome = this.escapeHtmlAttr(nome);
                     return `
@@ -414,7 +397,7 @@ export class ConfiguracaoManager {
         });
 
         const titulo = categoria ? `Clientes: ${categoria}` : 'Clientes: Sem Categoria';
-        const iconName = categoria ? this.getIconForEmoji(categorias[categoria]) : 'settings';
+        const iconName = categoria ? (categorias[categoria] || 'settings') : 'settings';
         
         let listaHTML = '';
         
@@ -505,8 +488,8 @@ export class ConfiguracaoManager {
             return;
         }
 
-        const emoji = Storage.getDefaultEmoji(categoria);
-        categorias[categoria] = emoji;
+        const iconName = Storage.getDefaultIcon(categoria);
+        categorias[categoria] = iconName;
         await Storage.saveCategorias(categorias);
         input.value = '';
         this.renderCategorias();
@@ -527,24 +510,29 @@ export class ConfiguracaoManager {
 
     async editCategoria(categoria) {
         const categorias = Storage.loadCategorias();
-        const emojiAtual = categorias[categoria];
+        const iconAtual = categorias[categoria];
         
         const iconOptions = [
-            { icon: 'user', emoji: '👨' },
-            { icon: 'building', emoji: '🏢' },
-            { icon: 'utensils', emoji: '🍽️' },
-            { icon: 'briefcase', emoji: '💼' },
-            { icon: 'settings', emoji: '⚙️' },
-            { icon: 'target', emoji: '🎯' },
-            { icon: 'smartphone', emoji: '📱' },
-            { icon: 'bar-chart', emoji: '📊' },
-            { icon: 'wrench', emoji: '🔧' },
-            { icon: 'palette', emoji: '🎨' },
-            { icon: 'star', emoji: '⭐' },
-            { icon: 'package', emoji: '📦' },
-            { icon: 'rocket', emoji: '🚀' },
-            { icon: 'shopping-bag', emoji: '🛍️' },
-            { icon: 'coffee', emoji: '☕' }
+            { icon: 'user', label: 'Usuário' },
+            { icon: 'building', label: 'Edifício' },
+            { icon: 'utensils', label: 'Restaurante' },
+            { icon: 'briefcase', label: 'Trabalho' },
+            { icon: 'dumbbell', label: 'Academia' },
+            { icon: 'store', label: 'Loja' },
+            { icon: 'settings', label: 'Configurações' },
+            { icon: 'target', label: 'Alvo' },
+            { icon: 'smartphone', label: 'Celular' },
+            { icon: 'bar-chart', label: 'Gráfico' },
+            { icon: 'wrench', label: 'Ferramenta' },
+            { icon: 'palette', label: 'Arte' },
+            { icon: 'star', label: 'Destaque' },
+            { icon: 'package', label: 'Pacote' },
+            { icon: 'rocket', label: 'Rápido' },
+            { icon: 'shopping-bag', label: 'Compras' },
+            { icon: 'coffee', label: 'Café' },
+            { icon: 'heart', label: 'Favorito' },
+            { icon: 'truck', label: 'Entrega' },
+            { icon: 'home', label: 'Casa' }
         ];
         
         const content = `
@@ -556,10 +544,11 @@ export class ConfiguracaoManager {
                 
                 <div>
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Selecione um Ícone</label>
-                    <div class="grid grid-cols-5 gap-2">
+                    <div class="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
                         ${iconOptions.map(option => `
-                            <button type="button" class="icon-option p-3 rounded-lg border-2 transition-all ${option.emoji === emojiAtual ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30'} hover:border-blue-500 flex items-center justify-center" data-emoji="${option.emoji}" data-icon="${option.icon}">
+                            <button type="button" class="icon-option p-3 rounded-lg border-2 transition-all ${option.icon === iconAtual ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30'} hover:border-blue-500 flex flex-col items-center justify-center gap-1" data-icon="${option.icon}" title="${option.label}">
                                 <i data-lucide="${option.icon}" class="w-6 h-6 text-slate-700 dark:text-slate-300"></i>
+                                <span class="text-xs text-slate-600 dark:text-slate-400">${option.label}</span>
                             </button>
                         `).join('')}
                     </div>
@@ -578,13 +567,13 @@ export class ConfiguracaoManager {
             lucide.createIcons();
         }, 0);
         
-        let emojiSelecionado = emojiAtual;
+        let iconSelecionado = iconAtual;
         
         document.querySelectorAll('.icon-option').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.icon-option').forEach(b => b.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/30'));
                 btn.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/30');
-                emojiSelecionado = btn.dataset.emoji;
+                iconSelecionado = btn.dataset.icon;
             });
         });
         
@@ -609,7 +598,7 @@ export class ConfiguracaoManager {
                 delete categorias[categoria];
             }
             
-            categorias[novoNome] = emojiSelecionado;
+            categorias[novoNome] = iconSelecionado;
             await Storage.saveCategorias(categorias);
             Modals.close();
             this.renderCategorias();
@@ -625,7 +614,9 @@ export class ConfiguracaoManager {
             if (select) {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">Selecione uma categoria (opcional)</option>' +
-                    Object.entries(categorias).map(([nome, emoji]) => `<option value="${nome}">${emoji} ${nome}</option>`).join('');
+                    Object.entries(categorias).map(([nome, iconName]) => {
+                        return `<option value="${nome}">${nome}</option>`;
+                    }).join('');
                 if (currentValue && currentValue in categorias) {
                     select.value = currentValue;
                 }
@@ -651,8 +642,7 @@ export class ConfiguracaoManager {
             if (!menu) return;
 
             menu.innerHTML = '<div class="dropdown-option" data-value=""><i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Selecione uma categoria (opcional)</div>' +
-                Object.entries(categorias).map(([nome, emoji]) => {
-                    const iconName = this.getIconForEmoji(emoji);
+                Object.entries(categorias).map(([nome, iconName]) => {
                     return `
                     <div class="dropdown-option" data-value="${nome}">
                         <i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>${nome}
@@ -1031,7 +1021,7 @@ export class ConfiguracaoManager {
                     if (categoriaRaw in categoriasExistentes) {
                         categoria = categoriaRaw;
                     } else {
-                        categoriasExistentes[categoriaRaw] = Storage.getDefaultEmoji(categoriaRaw);
+                        categoriasExistentes[categoriaRaw] = Storage.getDefaultIcon(categoriaRaw);
                         Storage.saveCategorias(categoriasExistentes);
                         categoria = categoriaRaw;
                     }
@@ -1478,26 +1468,26 @@ export class ConfiguracaoManager {
                 .filter(([_, count]) => count > 0)
                 .sort((a, b) => b[1] - a[1])
                 .map(([nome, count]) => {
-                    const emoji = categorias[nome];
-                    return `<span class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded flex items-center gap-1" title="Registros ${nome}">${emoji} ${count}</span>`;
+                    const iconName = categorias[nome] || 'circle';
+                    return `<span class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded flex items-center gap-1" title="Registros ${nome}"><i data-lucide="${iconName}" class="w-3 h-3"></i> ${count}</span>`;
                 })
                 .join('');
             
             const semCategoriaRegistrosBadge = semCategoriaRegistros > 0 
-                ? `<span class="text-xs px-2 py-0.5 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded flex items-center gap-1" title="Sem categoria">⚙️ ${semCategoriaRegistros}</span>` 
+                ? `<span class="text-xs px-2 py-0.5 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded flex items-center gap-1" title="Sem categoria"><i data-lucide="settings" class="w-3 h-3"></i> ${semCategoriaRegistros}</span>` 
                 : '';
             
             const categoriaPernoitesBadges = Object.entries(categoriaPernoites)
                 .filter(([_, count]) => count > 0)
                 .sort((a, b) => b[1] - a[1])
                 .map(([nome, count]) => {
-                    const emoji = categorias[nome];
-                    return `<span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded flex items-center gap-1" title="Pernoites ${nome}"><i data-lucide="moon" class="w-3 h-3"></i> ${emoji} ${count}</span>`;
+                    const iconName = categorias[nome] || 'circle';
+                    return `<span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded flex items-center gap-1" title="Pernoites ${nome}"><i data-lucide="moon" class="w-3 h-3"></i> <i data-lucide="${iconName}" class="w-3 h-3"></i> ${count}</span>`;
                 })
                 .join('');
             
             const semCategoriaPernoitesBadge = semCategoriaPernoites > 0 
-                ? `<span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded flex items-center gap-1" title="Pernoites sem categoria"><i data-lucide="moon" class="w-3 h-3"></i> ⚙️ ${semCategoriaPernoites}</span>` 
+                ? `<span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded flex items-center gap-1" title="Pernoites sem categoria"><i data-lucide="moon" class="w-3 h-3"></i> <i data-lucide="settings" class="w-3 h-3"></i> ${semCategoriaPernoites}</span>` 
                 : '';
             
             const totalPernoites = Object.values(categoriaPernoites).reduce((sum, c) => sum + c, 0) + semCategoriaPernoites;

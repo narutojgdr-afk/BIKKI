@@ -546,26 +546,6 @@ export class RegistrosManager {
         const dropdownText = dropdown.querySelector('.dropdown-text');
         if (!dropdownMenu) return;
 
-        const iconMap = {
-            '👤': 'user',
-            '🏢': 'building',
-            '🍽️': 'utensils',
-            '💪': 'dumbbell',
-            '👨': 'user',
-            '🏪': 'store',
-            '⚙️': 'settings',
-            '🎯': 'target',
-            '📱': 'smartphone',
-            '📊': 'bar-chart',
-            '🔧': 'wrench',
-            '🎨': 'palette',
-            '⭐': 'star',
-            '📦': 'package',
-            '🚀': 'rocket',
-            '🛍️': 'shopping-bag',
-            '☕': 'coffee'
-        };
-
         // Build the dropdown options HTML
         let optionsHtml = `
             <div class="dropdown-option ${!selectedCategoria ? 'selected' : ''}" data-value="">
@@ -574,13 +554,12 @@ export class RegistrosManager {
             </div>
         `;
 
-        Object.entries(categorias).forEach(([nome, emoji]) => {
-            const iconName = iconMap[emoji] || 'circle';
+        Object.entries(categorias).forEach(([nome, iconName]) => {
             const isSelected = selectedCategoria === nome;
             optionsHtml += `
                 <div class="dropdown-option ${isSelected ? 'selected' : ''}" data-value="${nome}">
                     <i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>
-                    ${emoji} ${nome}
+                    ${nome}
                 </div>
             `;
         });
@@ -590,9 +569,8 @@ export class RegistrosManager {
         // Update the button text
         if (dropdownText) {
             if (selectedCategoria && categorias[selectedCategoria]) {
-                const emoji = categorias[selectedCategoria];
-                const iconName = iconMap[emoji] || 'circle';
-                dropdownText.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>${emoji} ${selectedCategoria}`;
+                const iconName = categorias[selectedCategoria];
+                dropdownText.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>${selectedCategoria}`;
             } else {
                 dropdownText.innerHTML = `<i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Selecione uma categoria (opcional)`;
             }
@@ -989,30 +967,8 @@ export class RegistrosManager {
                         <tbody>
                             ${dailyRecords.map(({ client, bike, registro }) => {
                                 const categoria = registro.categoria || client.categoria || '';
-                                const categoriaEmoji = categoria && categorias[categoria] ? categorias[categoria] : '';
-                                const categoriaDisplay = categoria ? (() => {
-                                    const iconMap = {
-                                        '👤': 'user',
-                                        '🏢': 'building',
-                                        '🍽️': 'utensils',
-                                        '💪': 'dumbbell',
-                                        '👨': 'user',
-                                        '🏪': 'store',
-                                        '⚙️': 'settings',
-                                        '🎯': 'target',
-                                        '📱': 'smartphone',
-                                        '📊': 'bar-chart',
-                                        '🔧': 'wrench',
-                                        '🎨': 'palette',
-                                        '⭐': 'star',
-                                        '📦': 'package',
-                                        '🚀': 'rocket',
-                                        '🛍️': 'shopping-bag',
-                                        '☕': 'coffee'
-                                    };
-                                    const iconName = iconMap[categoriaEmoji] || 'circle';
-                                    return `<i data-lucide="${iconName}" class="w-4 h-4 inline mr-2"></i>${categoria}`;
-                                })() : '<span class="text-xs text-slate-400">-</span>';
+                                const categoriaIconName = categoria && categorias[categoria] ? categorias[categoria] : '';
+                                const categoriaDisplay = categoria ? `<i data-lucide="${categoriaIconName}" class="w-4 h-4 inline mr-2"></i>${categoria}` : '<span class="text-xs text-slate-400">-</span>';
                                 
                                 return `
                         <tr class="border-b border-slate-100 dark:border-slate-700">
@@ -1193,27 +1149,7 @@ export class RegistrosManager {
         return `
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 ${Object.entries(categoriasCount).map(([categoria, count]) => {
-                    const emoji = categoria === 'Sem Categoria' ? '⚙️' : (categorias[categoria] || '⚙️');
-                    const iconMap = {
-                        '👤': 'user',
-                        '🏢': 'building',
-                        '🍽️': 'utensils',
-                        '💪': 'dumbbell',
-                        '👨': 'user',
-                        '🏪': 'store',
-                        '⚙️': 'settings',
-                        '🎯': 'target',
-                        '📱': 'smartphone',
-                        '📊': 'bar-chart',
-                        '🔧': 'wrench',
-                        '🎨': 'palette',
-                        '⭐': 'star',
-                        '📦': 'package',
-                        '🚀': 'rocket',
-                        '🛍️': 'shopping-bag',
-                        '☕': 'coffee'
-                    };
-                    const iconName = iconMap[emoji] || 'circle';
+                    const iconName = categoria === 'Sem Categoria' ? 'settings' : (categorias[categoria] || 'settings');
                     return `
                         <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors cursor-pointer categoria-box" data-categoria="${categoria}">
                             <i data-lucide="${iconName}" class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
