@@ -448,38 +448,89 @@ export const Storage = {
             }
         }
         const defaultCategories = {
-            'CLIENTE': '👤',
-            'LOJISTA': '🏪',
-            'IFOOD': '🍽️',
-            'ACADEMIA': '💪',
-            'MORADOR': '🏠',
-            'VISITANTE': '🚶',
-            'VIP': '⭐',
-            'ENTREGA': '📦'
+            'CLIENTE': 'user',
+            'LOJISTA': 'store',
+            'IFOOD': 'utensils',
+            'ACADEMIA': 'dumbbell',
+            'MORADOR': 'home',
+            'VISITANTE': 'user',
+            'VIP': 'star',
+            'ENTREGA': 'package'
         };
         this.saveCategorias(defaultCategories);
         return defaultCategories;
     },
 
-    getDefaultEmoji(categoryName) {
+    getDefaultIcon(categoryName) {
         const categoryUpper = categoryName.toUpperCase();
-        const emojiMap = {
-            'CLIENTE': '👤',
-            'LOJISTA': '🏪',
-            'IFOOD': '🍽️',
-            'ACADEMIA': '💪',
-            'MORADOR': '🏠',
-            'VISITANTE': '🚶',
-            'VIP': '⭐',
-            'ENTREGA': '📦'
+        const iconMap = {
+            'CLIENTE': 'user',
+            'LOJISTA': 'store',
+            'IFOOD': 'utensils',
+            'ACADEMIA': 'dumbbell',
+            'MORADOR': 'home',
+            'VISITANTE': 'user',
+            'VIP': 'star',
+            'ENTREGA': 'package'
         };
-        return emojiMap[categoryUpper] || '⚙️';
+        return iconMap[categoryUpper] || 'settings';
+    },
+
+    // Keep for backward compatibility during migration
+    getDefaultEmoji(categoryName) {
+        return this.getDefaultIcon(categoryName);
     },
 
     async saveCategorias(categorias) {
+        // Migrate emojis to icon names if needed
+        const migratedCategorias = this.migrateCategorias(categorias);
+        
         if (isElectron) {
-            await window.electron.saveCategorias(categorias);
+            await window.electron.saveCategorias(migratedCategorias);
         }
-        localStorage.setItem('bicicletario_categorias', JSON.stringify(categorias));
+        localStorage.setItem('bicicletario_categorias', JSON.stringify(migratedCategorias));
+    },
+
+    migrateCategorias(categorias) {
+        const emojiToIconMap = {
+            '👤': 'user',
+            '👨': 'user',
+            '🏢': 'building',
+            '🍽️': 'utensils',
+            '💪': 'dumbbell',
+            '🏪': 'store',
+            '⚙️': 'settings',
+            '🎯': 'target',
+            '📱': 'smartphone',
+            '📊': 'bar-chart',
+            '🔧': 'wrench',
+            '🎨': 'palette',
+            '⭐': 'star',
+            '📦': 'package',
+            '🚀': 'rocket',
+            '🛍️': 'shopping-bag',
+            '☕': 'coffee',
+            '💼': 'briefcase',
+            '❤️': 'heart',
+            '🚚': 'truck',
+            '🏠': 'home',
+            '🚶': 'user'
+        };
+
+        const migrated = {};
+        Object.entries(categorias).forEach(([name, value]) => {
+            // If value is an emoji, convert it to icon name
+            if (emojiToIconMap[value]) {
+                migrated[name] = emojiToIconMap[value];
+            } else if (typeof value === 'string' && value.length === 1) {
+                // If it's a single character emoji not in map, default to settings
+                migrated[name] = 'settings';
+            } else {
+                // Already an icon name, keep it
+                migrated[name] = value;
+            }
+        });
+        
+        return migrated;
     }
 };
